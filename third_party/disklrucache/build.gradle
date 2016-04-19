@@ -1,0 +1,21 @@
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+
+repositories {
+  jcenter()
+}
+
+checkstyle {
+    toolVersion = "6.6"
+}
+
+checkstyle {
+    configFile = new File(projectDir, 'checkstyle.xml')
+}
+
+dependencies {
+    def junitVersion = hasProperty('JUNIT_VERSION') ? JUNIT_VERSION : '4.12';
+    testCompile "junit:junit:${junitVersion}"
+    testCompile 'commons-io:commons-io:2.1'
+    testCompile 'org.easytesting:fest-assert-core:2.0M10'
+}
