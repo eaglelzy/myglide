@@ -1,11 +1,18 @@
 package com.lizy.myglide.util;
 
+import android.graphics.Bitmap;
+import android.os.Build;
+
+import com.lizy.myglide.load.engine.bitmap_recycle.Poolable;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -67,5 +74,56 @@ public class Util {
       }
     }
     return result;
+  }
+
+  public static <T extends Poolable> Queue<T> createQueue(int maxSize) {
+    return new ArrayDeque<>(maxSize);
+  }
+
+  public static int getBitmapByteSize(Bitmap bitmap) {
+    if (bitmap.isRecycled()) {
+      throw new IllegalStateException("Cannot obtain size for recycled Bitmap: " + bitmap
+              + "[" + bitmap.getWidth() + "x" + bitmap.getHeight() + "] " + bitmap.getConfig());
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      // Workaround for KitKat initial release NPE in Bitmap, fixed in MR1. See issue #148.
+      try {
+        return bitmap.getAllocationByteCount();
+      } catch (NullPointerException e) {
+        // Do nothing.
+      }
+    }
+    return bitmap.getHeight() * bitmap.getRowBytes();
+  }
+
+  /**
+   * Returns the in memory size of {@link android.graphics.Bitmap} with the given width, height, and
+   * {@link android.graphics.Bitmap.Config}.
+   */
+  public static int getBitmapByteSize(int width, int height, Bitmap.Config config) {
+    return width * height * getBytesPerPixel(config);
+  }
+
+  private static int getBytesPerPixel(Bitmap.Config config) {
+    // A bitmap by decoding a gif has null "config" in certain environments.
+    if (config == null) {
+      config = Bitmap.Config.ARGB_8888;
+    }
+
+    int bytesPerPixel;
+    switch (config) {
+      case ALPHA_8:
+        bytesPerPixel = 1;
+        break;
+      case RGB_565:
+      case ARGB_4444:
+        bytesPerPixel = 2;
+        break;
+      case ARGB_8888:
+      default:
+        bytesPerPixel = 4;
+        break;
+    }
+    return bytesPerPixel;
   }
 }

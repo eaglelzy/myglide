@@ -77,7 +77,7 @@ public class LruCache<T, Y> {
         return value;
     }
 
-    private int getSize(Y item) {
+    protected int getSize(Y item) {
         return 1;
     }
 
