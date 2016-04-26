@@ -1,0 +1,56 @@
+﻿//ModelLoaders
+GifDecoder		GifDecoder		        UnitModelLoader.Factory<GifDecode>
+File		    ByteBuffer		        ByteBufferFileLoader.Factory
+File	      	InputStream		        FileLoader.StreamFactory
+File		    ParcelFileDescriptor	FileLoader.FileDescriptorFactory
+File		    File		            UnitModelLoader.Factory<File>
+int		        InputStream		        ResourceLoader.StreamFactory
+int		        ParcelFileDescriptor	ResourceLoader.FileDescriptorFactory
+Integer		    InputStream		        ResourceLoader.StreamFactory
+Integer		    ParcelFileDescriptor	ResourceLoader.FileDescriptorFactory
+String		    InputStream		        DataUrlLoader.StreamFactory
+String		    InputStream		        StringLoader.StreamFactory
+String		    ParcelFileDescriptor	StringLoader.FileDescriptorFactory
+Uri		        InputStream		        HttpUriLoader.Factory
+Uri		        InputStream		        AssetUriLoader.StreamFactory
+Uri		        ParcelFileDescriptor	AssetUriLoader.FileDescriptorFactory
+Uri		        InputStream		        MediaStoreImageThumbLoader.Factory
+Uri	        	InputStream		        MediaStoreImageThumbLoader.Factory
+Uri		        InputStream		        UriLoader.StreamFactory
+Uri		        ParcelFileDescriptor	UriLoader.FileDescriptorFactory
+Uri		        InputStream		        UrlUriLoader.StreamFactory
+URL		        InputStream		        UrlLoader.StreamFactory
+Uri		        File		            MediaStoreFileLoader.Factory
+GlideUrl		InputStream		        HttpGlideUrlLoader.Factory
+byte[]		    ByteBuffer		        ByteArrayLoader.ByteBufferFactory
+byte[]  	    InputStream		        ByteArrayLoader.StreamFactory
+
+//Encodes
+ByteBuffer		ByteBufferEncoder
+InputStream	    StreamEncoder
+
+//ResourceDecoder
+ByteBuffer	        	GifDrawable		    ByteBufferGifDecoder
+InputStream		        GifDrawable		    StreamGifDecoder
+ByteBuffer		        Bitmap		        ByteBufferBitmapDecoder
+InputStream		        Bitmap		        StreamBitmapDecoder
+ParcelFileDescriptor	Bitmap		        VideoBitmapDecoder
+ByteBuffer		        BitmapDrawable		BitmapDrawableDecoder
+InputStream		        BitmapDrawable		BitmapDrawableDecoder
+ParcelFileDescriptor	BitmapDrawable		BitmapDrawableDecoder
+GifDecoder		        Bitmap	            GifFrameResourceDecoder
+File		            File		        FileDecoder
+
+//ResourceEncode
+Bitmap		        BitmapEncoder
+BitmapDrawable		BitmapDrawableEncoder
+GifDrawable		    GifDrawableEncoder
+ 
+//rewinder
+InputStreamRewinder$Factory@103b3c65classjava.nio.ByteBuffer=com.bumptech.glide.load.resource.bytes.ByteBufferRewinder$Factory@10bdad3a
+
+//transcode
+Bitmap		      BitmapDrawable		BitmapDrawableTranscoder
+Bitmap		      byte[]		        BitmapBytesTranscoder
+GifDrawable		  byte[]	            GifDrawableBytesTranscoder
+
