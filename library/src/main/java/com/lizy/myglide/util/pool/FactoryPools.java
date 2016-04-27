@@ -3,10 +3,15 @@ package com.lizy.myglide.util.pool;
 import android.support.v4.util.Pools;
 import android.support.v4.util.Pools.Pool;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by lizy on 16-4-18.
  */
 public class FactoryPools {
+    private static final int DEFAULT_POOL_SIZE = 20;
+
     private static final Resetter<Object> EMPTY_RESETTER = new Resetter<Object>() {
         @Override
         public void reset(Object object) {
@@ -22,6 +27,24 @@ public class FactoryPools {
 
     public static <T extends Poolable> Pool<T> threadSafe(int size, Factory<T> factory) {
         return build(new Pools.SynchronizedPool<T>(size), factory, FactoryPools.<T>getResetter());
+    }
+
+    public static <T> Pool<List<T>> threadSafeList() {
+        return threadSafeList(DEFAULT_POOL_SIZE);
+    }
+
+    public static <T> Pool<List<T>> threadSafeList(int size) {
+        return build(new Pools.SynchronizedPool<List<T>>(size), new Factory<List<T>>() {
+            @Override
+            public List<T> create() {
+                return new ArrayList<>();
+            }
+        }, new Resetter<List<T>>() {
+            @Override
+            public void reset(List<T> object) {
+                object.clear();
+            }
+        });
     }
 
     private static <T> Pool<T> build(Pool<T> pool, Factory<T> factory,
