@@ -13,4 +13,8 @@
         android:layout_height="wrap_content"
         android:text="test"
         android:onClick="test"/>
+    <ImageView
+        android:id="@+id/img_test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </LinearLayout>

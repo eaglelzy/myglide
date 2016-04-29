@@ -71,7 +71,7 @@ public class DiskLruCacheWrapper implements DiskCache {
 
     @Override
     public void put(Key key, Writer writer) {
-        // 不使用synchronized,而使用重入锁，在多线程访问不同key时提高了效率
+        // TODO:不使用synchronized,而使用重入锁，在多线程访问不同key时提高了效率
         writeLocker.acquire(key);
         try {
             String safeKey = safeKeyGenerator.getSafeKey(key);

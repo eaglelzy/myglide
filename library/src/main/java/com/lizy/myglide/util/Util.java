@@ -3,8 +3,6 @@ package com.lizy.myglide.util;
 import android.graphics.Bitmap;
 import android.os.Build;
 
-import com.lizy.myglide.load.engine.bitmap_recycle.Poolable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -76,8 +74,8 @@ public class Util {
     return result;
   }
 
-  public static <T extends Poolable> Queue<T> createQueue(int maxSize) {
-    return new ArrayDeque<>(maxSize);
+  public static <T> Queue<T> createQueue(int size) {
+    return new ArrayDeque<>(size);
   }
 
   public static int getBitmapByteSize(Bitmap bitmap) {
@@ -125,5 +123,9 @@ public class Util {
         break;
     }
     return bytesPerPixel;
+  }
+
+  public static boolean bothNullOrEqual(Object a, Object b) {
+    return a == null ? b == null : a.equals(b);
   }
 }

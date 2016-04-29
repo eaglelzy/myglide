@@ -57,7 +57,7 @@ public class StringLoader<Data> implements ModelLoader<String, Data> {
 
         @Override
         public ModelLoader<String, InputStream> build(Context context, MultiModelLoaderFactory multiFactory) {
-            return new StringLoader(multiFactory.build(String.class, InputStream.class));
+            return new StringLoader(multiFactory.build(Uri.class, InputStream.class));
         }
 
         @Override
