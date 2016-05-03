@@ -21,6 +21,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
 }
 
 dependencies {
@@ -30,4 +31,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
     compile "com.android.support:appcompat-v7:${SUPPORT_V7_VERSION}"
+    compile 'com.android.support:support-v4:23.3.0'
 }

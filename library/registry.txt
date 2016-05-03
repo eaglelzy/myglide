@@ -15,7 +15,7 @@ Uri		        InputStream		        HttpUriLoader.Factory
 Uri		        InputStream		        AssetUriLoader.StreamFactory
 Uri		        ParcelFileDescriptor	AssetUriLoader.FileDescriptorFactory
 Uri		        InputStream		        MediaStoreImageThumbLoader.Factory
-Uri	        	InputStream		        MediaStoreImageThumbLoader.Factory
+Uri	        	InputStream		        MediaStoreVideoThumbLoader.Factory
 Uri		        InputStream		        UriLoader.StreamFactory
 Uri		        ParcelFileDescriptor	UriLoader.FileDescriptorFactory
 Uri		        InputStream		        UrlUriLoader.StreamFactory

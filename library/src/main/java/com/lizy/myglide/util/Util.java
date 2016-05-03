@@ -2,6 +2,7 @@ package com.lizy.myglide.util;
 
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.os.Looper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,6 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Queue;
 
 import static junit.framework.Assert.assertEquals;
@@ -128,4 +132,26 @@ public class Util {
   public static boolean bothNullOrEqual(Object a, Object b) {
     return a == null ? b == null : a.equals(b);
   }
+
+  public static void assertMainThread() {
+    if (!isOnMainThread()) {
+      throw new IllegalArgumentException("You must call this method on the main thread");
+    }
+  }
+
+  public static boolean isOnBackgroudThread() {
+    return !isOnMainThread();
+  }
+  public static boolean isOnMainThread() {
+    return Looper.myLooper() == Looper.getMainLooper();
+  }
+
+  public static <T> List<T> getSnapshot(Collection<T> other) {
+    List<T> result = new ArrayList<T>(other.size());
+    for (T item : other) {
+      result.add(item);
+    }
+    return result;
+  }
+
 }
