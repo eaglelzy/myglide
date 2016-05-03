@@ -1,41 +1,17 @@
 package com.lizy.myglide.samples;
 
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.renderscript.RenderScript;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.lizy.myglide.Registry;
-import com.lizy.myglide.load.Options;
-import com.lizy.myglide.load.data.DataFetcher;
-import com.lizy.myglide.load.engine.DecodePath;
-import com.lizy.myglide.load.engine.GlideException;
-import com.lizy.myglide.load.engine.LoadPath;
-import com.lizy.myglide.load.engine.Resource;
-import com.lizy.myglide.load.engine.bitmap_recycle.ArrayPool;
-import com.lizy.myglide.load.engine.bitmap_recycle.BitmapPool;
-import com.lizy.myglide.load.engine.bitmap_recycle.LruArrayPool;
-import com.lizy.myglide.load.engine.bitmap_recycle.LruBitmapPool;
-import com.lizy.myglide.load.model.GlideUrl;
-import com.lizy.myglide.load.model.ModelLoader;
-import com.lizy.myglide.load.model.StringLoader;
-import com.lizy.myglide.load.model.stream.HttpGlideUrlLoader;
-import com.lizy.myglide.load.model.stream.HttpUriLoader;
-import com.lizy.myglide.load.resource.bitmap.BitmapDrawableDecoder;
-import com.lizy.myglide.load.resource.bitmap.Downsampler;
-import com.lizy.myglide.load.resource.bitmap.StreamBitmapDecoder;
-import com.lizy.myglide.load.resource.transcode.BitmapDrawableTanscoder;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import com.lizy.myglide.load.DataSource;
+import com.lizy.myglide.request.target.ImageViewTargetFactory;
+import com.lizy.myglide.request.target.Target;
+import com.lizy.myglide.request.transtion.Transition;
+import com.lizy.myglide.request.transtion.ViewAnimationFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,11 +22,53 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         imageView = (ImageView)findViewById(R.id.img_test);
+        drawables[0] = getResources().getDrawable(R.drawable.test_1_200);
+        drawables[1] = getResources().getDrawable(R.drawable.test_2_200);
+        drawables[2] = getResources().getDrawable(R.drawable.test_3_200);
+
+
+        adapter = new Transition.ViewAdapter() {
+            private Drawable drawable;
+            @Override
+            public View getView() {
+                return imageView;
+            }
+
+            @Nullable
+            @Override
+            public Drawable getCurrentDrawable() {
+                return drawable;
+            }
+
+            @Override
+            public void setDrawable(@Nullable Drawable drawable) {
+                this.drawable = drawable;
+            }
+        };
+
+        transition= new ViewAnimationFactory<Drawable>(android.R.anim.fade_in)
+                .build(DataSource.REMOTE, true);
+
+        target = new ImageViewTargetFactory().buildTarget(imageView, Drawable.class);
     }
 
-    public void test(View v) {
+    private int currentIndex = 0;
 
-        Resources resources = getResources();
+    private Drawable[] drawables = new Drawable[3];
+
+    private Transition.ViewAdapter adapter;
+
+    private Transition<Drawable> transition;
+
+    Target<Drawable> target;
+
+    public void test(View v) {
+        target.onResourceReady(drawables[currentIndex], transition);
+
+        currentIndex++;
+        currentIndex = currentIndex % 3;
+
+/*        Resources resources = getResources();
         BitmapPool bitmapPool = new LruBitmapPool(50 * 1024 * 1024);
         ArrayPool arrayPool = new LruArrayPool(8 * 1024 * 1024);
         Downsampler downsampler = new Downsampler(resources.getDisplayMetrics(), bitmapPool, arrayPool);
@@ -101,6 +119,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onLoadFailed(Exception e) {
                 }
             });
-        }
+        }*/
     }
 }

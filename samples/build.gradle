@@ -10,7 +10,7 @@ android {
         minSdkVersion MIN_SDK_VERSION as int
         targetSdkVersion TARGET_SDK_VERSION as int
         versionCode 1
-        versionName "1.0"
+        versionName "test_1.0"
 
         consumerProguardFiles 'proguard-rules.pro'
     }
