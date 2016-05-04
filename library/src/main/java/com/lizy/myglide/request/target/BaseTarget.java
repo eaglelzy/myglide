@@ -3,6 +3,7 @@ package com.lizy.myglide.request.target;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 
+import com.lizy.myglide.request.Request;
 import com.lizy.myglide.request.transtion.Transition;
 
 /**

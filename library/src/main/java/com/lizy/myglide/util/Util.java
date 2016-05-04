@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Looper;
 
+import com.lizy.myglide.request.target.Target;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -127,6 +129,14 @@ public class Util {
         break;
     }
     return bytesPerPixel;
+  }
+
+  public static boolean isValidDimensions(int width, int height) {
+    return isValidDimension(width) && isValidDimension(height);
+  }
+
+  private static boolean isValidDimension(int dimen) {
+    return dimen > 0 || dimen == Target.SIZE_ORIGINAL;
   }
 
   public static boolean bothNullOrEqual(Object a, Object b) {

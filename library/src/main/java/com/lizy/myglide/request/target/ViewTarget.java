@@ -12,6 +12,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 
+import com.lizy.myglide.request.Request;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +72,7 @@ public abstract class ViewTarget<T extends View, Z> extends BaseTarget<Z> {
     }
 
     private void setTag(Request request) {
-        if (tagId == null) {
+        if (tagId != null) {
             isTagUsedAtLeastOnce = true;
             view.setTag(tagId, request);
         } else {

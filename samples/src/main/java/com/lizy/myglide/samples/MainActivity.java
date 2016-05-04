@@ -1,5 +1,7 @@
 package com.lizy.myglide.samples;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -7,7 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.lizy.myglide.Glide;
 import com.lizy.myglide.load.DataSource;
+import com.lizy.myglide.load.resource.bitmap.TransformationUtils;
 import com.lizy.myglide.request.target.ImageViewTargetFactory;
 import com.lizy.myglide.request.target.Target;
 import com.lizy.myglide.request.transtion.Transition;
@@ -50,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
                 .build(DataSource.REMOTE, true);
 
         target = new ImageViewTargetFactory().buildTarget(imageView, Drawable.class);
+
+        srcBitmap = ((BitmapDrawable)drawables[0]).getBitmap();
     }
 
     private int currentIndex = 0;
@@ -60,13 +66,20 @@ public class MainActivity extends AppCompatActivity {
 
     private Transition<Drawable> transition;
 
+    private Bitmap srcBitmap;
+
     Target<Drawable> target;
 
     public void test(View v) {
-        target.onResourceReady(drawables[currentIndex], transition);
+
+        Bitmap destMap = TransformationUtils.circleCrop(Glide.get(this).getBitmapPool(), srcBitmap,
+                imageView.getWidth(), imageView.getHeight());
+        imageView.setImageBitmap(destMap);
+
+/*        target.onResourceReady(drawables[currentIndex], transition);
 
         currentIndex++;
-        currentIndex = currentIndex % 3;
+        currentIndex = currentIndex % 3;*/
 
 /*        Resources resources = getResources();
         BitmapPool bitmapPool = new LruBitmapPool(50 * 1024 * 1024);

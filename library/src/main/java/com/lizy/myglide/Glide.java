@@ -13,12 +13,12 @@ import android.os.Build;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 
+import com.lizy.myglide.load.MemoryCategory;
 import com.lizy.myglide.load.engine.Engine;
 import com.lizy.myglide.load.engine.bitmap_recycle.ArrayPool;
 import com.lizy.myglide.load.engine.bitmap_recycle.BitmapPool;
 import com.lizy.myglide.load.engine.cache.MemoryCache;
 import com.lizy.myglide.load.model.GlideUrl;
-import com.lizy.myglide.load.model.ModelLoader;
 import com.lizy.myglide.load.model.StringLoader;
 import com.lizy.myglide.load.model.stream.HttpGlideUrlLoader;
 import com.lizy.myglide.load.model.stream.HttpUriLoader;
@@ -26,7 +26,6 @@ import com.lizy.myglide.load.resource.bitmap.BitmapDrawableDecoder;
 import com.lizy.myglide.load.resource.bitmap.Downsampler;
 import com.lizy.myglide.load.resource.bitmap.StreamBitmapDecoder;
 import com.lizy.myglide.load.resource.transcode.BitmapDrawableTanscoder;
-import com.lizy.myglide.manager.ActivityFragmentLifecycle;
 import com.lizy.myglide.manager.ConnectivityMonitorFactory;
 import com.lizy.myglide.manager.RequestManagerRetriever;
 import com.lizy.myglide.module.GlideModule;
@@ -138,6 +137,34 @@ public class Glide implements ComponentCallbacks2 {
     public static RequestManager with(Context context) {
         RequestManagerRetriever retriever = new RequestManagerRetriever();
         return retriever.get(context);
+    }
+
+    public GlideContext getGlideContext() {
+        return glideContext;
+    }
+
+    public BitmapPool getBitmapPool() {
+        return bitmapPool;
+    }
+
+    public ArrayPool getArrayPool() {
+        return arrayPool;
+    }
+
+    public ConnectivityMonitorFactory getConnectivityMonitorFactory() {
+        return connectivityMonitorFactory;
+    }
+
+    public void setMemoryCache(MemoryCategory memoryCategory) {
+        Util.assertMainThread();
+        float multiplier = memoryCategory.getMultiplier();
+        bitmapPool.setSizeMultiplier(multiplier);
+        memoryCache.setSizeMultiplier(multiplier);
+    }
+
+    //just for testing
+    static void tearDown() {
+        glide = null;
     }
 
     private void trimMemory(int level) {

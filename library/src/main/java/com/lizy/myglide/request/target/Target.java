@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 
 import com.lizy.myglide.manager.LifecycleListener;
+import com.lizy.myglide.request.Request;
 import com.lizy.myglide.request.transtion.Transition;
 
 /**

@@ -21,7 +21,7 @@ public class FactoryPools {
 
     private FactoryPools() {}
 
-    public static <T extends Poolable> Pool<T> simply(int size, Factory<T> factory) {
+    public static <T extends Poolable> Pool<T> simple(int size, Factory<T> factory) {
         return build(new Pools.SimplePool<T>(size), factory, FactoryPools.<T>getResetter());
     }
 

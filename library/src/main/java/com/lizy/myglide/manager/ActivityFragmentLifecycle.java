@@ -1,7 +1,5 @@
 package com.lizy.myglide.manager;
 
-import android.util.Log;
-
 import com.lizy.myglide.util.Util;
 
 import java.util.Collections;
@@ -20,7 +18,6 @@ public class ActivityFragmentLifecycle implements Lifecycle {
     private boolean isDestroy;
     @Override
     public void addListener(LifecycleListener listener) {
-        Log.d("lizy", this + " addlistener:" + listener);
         listeners.add(listener);
         if (isDestroy) {
             listener.onDestroy();
@@ -37,14 +34,12 @@ public class ActivityFragmentLifecycle implements Lifecycle {
     }
 
     public void onStart() {
-        Log.d("lizy", "listeners=" + listeners);
         isStart = true;
         for (LifecycleListener listener : Util.getSnapshot(listeners)) {
             listener.onStart();
         }
     }
     public void onStop() {
-        Log.d("lizy", "listeners=" + listeners);
         isStart = false;
         for (LifecycleListener listener : Util.getSnapshot(listeners)) {
             listener.onStop();
@@ -52,7 +47,6 @@ public class ActivityFragmentLifecycle implements Lifecycle {
     }
 
     public void onDestroy() {
-        Log.d("lizy", "listeners=" + listeners);
         isDestroy = true;
         for (LifecycleListener listener : Util.getSnapshot(listeners)) {
             listener.onDestroy();
