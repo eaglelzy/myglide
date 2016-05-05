@@ -19,6 +19,8 @@ import com.lizy.myglide.load.engine.bitmap_recycle.ArrayPool;
 import com.lizy.myglide.load.engine.bitmap_recycle.BitmapPool;
 import com.lizy.myglide.load.engine.cache.MemoryCache;
 import com.lizy.myglide.load.model.GlideUrl;
+import com.lizy.myglide.load.model.ModelLoader;
+import com.lizy.myglide.load.model.StreamEncoder;
 import com.lizy.myglide.load.model.StringLoader;
 import com.lizy.myglide.load.model.stream.HttpGlideUrlLoader;
 import com.lizy.myglide.load.model.stream.HttpUriLoader;
@@ -95,6 +97,8 @@ public class Glide implements ComponentCallbacks2 {
                 new Downsampler(resources.getDisplayMetrics(), bitmapPool, arrayPool);
 
         registry = new Registry(context);
+
+        registry.register(InputStream.class, new StreamEncoder(arrayPool));
 
         registry.append(String.class, InputStream.class, new StringLoader.StreamFactory());
         registry.append(Uri.class, InputStream.class, new HttpUriLoader.Factory());

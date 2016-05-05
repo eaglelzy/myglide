@@ -3,6 +3,7 @@ package com.lizy.myglide;
 import android.content.Context;
 import android.support.v4.util.Pools;
 
+import com.lizy.myglide.load.Encoder;
 import com.lizy.myglide.load.ResourceDecoder;
 import com.lizy.myglide.load.engine.DecodePath;
 import com.lizy.myglide.load.engine.LoadPath;
@@ -13,6 +14,7 @@ import com.lizy.myglide.load.provider.LoadPathCache;
 import com.lizy.myglide.load.provider.ResourceDecodeRegistry;
 import com.lizy.myglide.load.resource.transcode.ResourceTranscoder;
 import com.lizy.myglide.load.resource.transcode.TranscodeRegistry;
+import com.lizy.myglide.provider.EncoderRegistry;
 import com.lizy.myglide.util.pool.FactoryPools;
 
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ public class Registry {
 
     private final ResourceDecodeRegistry decoderRegistry;
     private final TranscodeRegistry transcoderRegistry;
+    private final EncoderRegistry encoderRegistry;
 
 //    private final LoadPathCache loadPathCache = new LoadPathCache();
 
@@ -38,6 +41,20 @@ public class Registry {
                 new ModelLoaderRegistry(context.getApplicationContext(), exceptionListPool);
         decoderRegistry = new ResourceDecodeRegistry();
         transcoderRegistry = new TranscodeRegistry();
+        encoderRegistry = new EncoderRegistry();
+    }
+
+    public <Data> Registry register(Class<Data> dataClass, Encoder<Data> encoder) {
+        encoderRegistry.add(dataClass, encoder);
+        return this;
+    }
+
+    public <X> Encoder<X> getSourceEncode(X data) throws NoSourceEncodeAvailableException {
+        Encoder<X> encoder = encoderRegistry.getEncoder((Class<X>)data.getClass());
+        if (encoder != null) {
+            return encoder;
+        }
+        throw new NoSourceEncodeAvailableException(data.getClass());
     }
 
     public <Model, Data> Registry append(Class<Model> modelClass, Class<Data> dataClass,
@@ -139,6 +156,12 @@ public class Registry {
 
         public NoModelLoaderAvailableException(Class modelClass, Class dataClass) {
             super("Failed to find any ModelLoaders for model: " + modelClass + " and data: " + dataClass);
+        }
+    }
+
+    public static class NoSourceEncodeAvailableException extends MissingComponentException {
+        public NoSourceEncodeAvailableException(Class<?> dataClass) {
+            super("Failed to find source encode for data class: " + dataClass);
         }
     }
 
