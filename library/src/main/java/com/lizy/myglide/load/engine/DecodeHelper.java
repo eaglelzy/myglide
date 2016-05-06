@@ -156,4 +156,15 @@ public class DecodeHelper<Transcode> {
         return loadData;
     }
 
+    DiskCacheStrategy getDiskCacheStrategy() {
+        return diskCacheStrategy;
+    }
+
+    boolean hasLoadPath(Class<?> dataClass) {
+        return getLoadPath(dataClass) != null;
+    }
+
+    Priority getPriority() {
+        return priority;
+    }
 }

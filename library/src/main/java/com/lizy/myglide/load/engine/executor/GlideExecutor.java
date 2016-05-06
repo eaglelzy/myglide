@@ -42,7 +42,7 @@ public class GlideExecutor extends ThreadPoolExecutor {
     public static GlideExecutor newDiskCacheExecutor(int threadCount, String name,
                                                      UncaughtThrowableStrategy strategy) {
         return new GlideExecutor(DEFAULT_DISKCACHE_EXCUTOR_THREADS, name, strategy,
-                false /*preventNetworkOperations*/, false);
+                true /*preventNetworkOperations*/, false);
     }
 
     public static GlideExecutor newSourceExecutor() {
@@ -52,7 +52,8 @@ public class GlideExecutor extends ThreadPoolExecutor {
 
     public static GlideExecutor newSourceExecutor(int threadCount, String name,
                                                   UncaughtThrowableStrategy strategy) {
-        return new GlideExecutor(threadCount, name, strategy, true, false);
+        return new GlideExecutor(threadCount, name, strategy,
+                false /*preventNetworkOperations*/, false);
     }
 
     public GlideExecutor(int coreThreadCount, String name, UncaughtThrowableStrategy strategy,

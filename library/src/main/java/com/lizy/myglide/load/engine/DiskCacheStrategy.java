@@ -21,13 +21,36 @@ public abstract class DiskCacheStrategy {
         }
 
         @Override
-        public boolean decodeCacheResource() {
+        public boolean decodeCachedResource() {
             return true;
         }
 
         @Override
-        public boolean decodeCacheData() {
+        public boolean decodeCachedData() {
             return true;
+        }
+    };
+
+    public static DiskCacheStrategy NONE = new DiskCacheStrategy() {
+
+        @Override
+        public boolean isDataCacheable(DataSource dataSource) {
+            return false;
+        }
+
+        @Override
+        public boolean isResourceCacheable(boolean isFromAlternateCacheKey, DataSource dataSource, EncodeStrategy encodeStrategy) {
+            return false;
+        }
+
+        @Override
+        public boolean decodeCachedResource() {
+            return false;
+        }
+
+        @Override
+        public boolean decodeCachedData() {
+            return false;
         }
     };
 
@@ -36,7 +59,7 @@ public abstract class DiskCacheStrategy {
     public abstract boolean isResourceCacheable(boolean isFromAlternateCacheKey,
             DataSource dataSource, EncodeStrategy encodeStrategy);
 
-    public abstract boolean decodeCacheResource();
+    public abstract boolean decodeCachedResource();
 
-    public abstract boolean decodeCacheData();
+    public abstract boolean decodeCachedData();
 }

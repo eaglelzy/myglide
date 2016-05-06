@@ -6,6 +6,7 @@ import android.widget.ImageView;
 import com.lizy.myglide.load.resource.drawable.DrawableTransitionOptions;
 import com.lizy.myglide.request.BaseRequestOptions;
 import com.lizy.myglide.request.Request;
+import com.lizy.myglide.request.RequestListener;
 import com.lizy.myglide.request.SingleRequest;
 import com.lizy.myglide.request.target.Target;
 import com.lizy.myglide.util.Preconditions;
@@ -28,6 +29,8 @@ public class RequestBuilder<TranscodeType> implements Cloneable {
     private boolean isModelSet;
 
     private Object model;
+
+    private RequestListener<TranscodeType> requestListener;
 
     @NonNull private BaseRequestOptions<?> requestOptions;
 
@@ -89,7 +92,18 @@ public class RequestBuilder<TranscodeType> implements Cloneable {
     }
 
     private Request buildRequest(Target<TranscodeType> target) {
-        return SingleRequest.obtain(context, model, target, 0, 0);
+        return SingleRequest.obtain(
+                context,
+                model,
+                transcodeClass,
+                requestOptions,
+                0,
+                0,
+                requestOptions.getPriority(),
+                target,
+                requestListener,
+                context.getEngine(),
+                transitionOptions.getTransitionFactory());
     }
 }
 

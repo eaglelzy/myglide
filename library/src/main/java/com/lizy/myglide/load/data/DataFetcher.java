@@ -1,8 +1,8 @@
 package com.lizy.myglide.load.data;
 
-import android.renderscript.RenderScript.Priority;
 import android.support.annotation.Nullable;
 
+import com.lizy.myglide.Priority;
 import com.lizy.myglide.load.DataSource;
 
 /**
