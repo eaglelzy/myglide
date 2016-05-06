@@ -18,8 +18,8 @@ import com.lizy.myglide.load.engine.Engine;
 import com.lizy.myglide.load.engine.bitmap_recycle.ArrayPool;
 import com.lizy.myglide.load.engine.bitmap_recycle.BitmapPool;
 import com.lizy.myglide.load.engine.cache.MemoryCache;
+import com.lizy.myglide.load.model.FileLoader;
 import com.lizy.myglide.load.model.GlideUrl;
-import com.lizy.myglide.load.model.ModelLoader;
 import com.lizy.myglide.load.model.StreamEncoder;
 import com.lizy.myglide.load.model.StringLoader;
 import com.lizy.myglide.load.model.stream.HttpGlideUrlLoader;
@@ -36,6 +36,7 @@ import com.lizy.myglide.request.RequestOptions;
 import com.lizy.myglide.request.target.ImageViewTargetFactory;
 import com.lizy.myglide.util.Util;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,6 +104,8 @@ public class Glide implements ComponentCallbacks2 {
         registry.append(String.class, InputStream.class, new StringLoader.StreamFactory());
         registry.append(Uri.class, InputStream.class, new HttpUriLoader.Factory());
         registry.append(GlideUrl.class, InputStream.class, new HttpGlideUrlLoader.Factory());
+
+        registry.append(File.class, InputStream.class, new FileLoader.StreamFactory());
 
         registry.append(InputStream.class, Bitmap.class, new StreamBitmapDecoder(downsampler));
         registry.append(InputStream.class, BitmapDrawable.class,

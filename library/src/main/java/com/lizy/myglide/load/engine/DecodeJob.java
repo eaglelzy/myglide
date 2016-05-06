@@ -322,7 +322,7 @@ public class DecodeJob<R> implements Runnable,
             case RESOURCE_CACHE:
                 return new ResourceCacheGenerator();
             case DATA_CACHE:
-                return new DataCacheGenerator();
+                return new DataCacheGenerator(decodeHelper, this);
             case SOURCE:
                 return new SourceGenerator(decodeHelper, this);
             case FINISHED:
@@ -361,7 +361,8 @@ public class DecodeJob<R> implements Runnable,
 
     @Override
     public void reschedule() {
-
+        runReason = RunReason.SWITCH_TO_SOURCE_SERVICE;
+        callback.reschedule(this);
     }
 
     @Override

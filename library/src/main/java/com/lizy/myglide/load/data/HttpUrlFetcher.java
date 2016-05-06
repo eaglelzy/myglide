@@ -48,7 +48,6 @@ public class HttpUrlFetcher implements DataFetcher<InputStream> {
 
     @Override
     public void loadData(Priority priority, DataCallback<? super InputStream> callback) {
-        Log.d("lizy", "currentThread=" + Thread.currentThread());
         long startTime = LogTime.getLogTime();
         final InputStream result;
         try {
@@ -125,12 +124,21 @@ public class HttpUrlFetcher implements DataFetcher<InputStream> {
 
     @Override
     public void cleanup() {
-
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+        if (urlConnection != null) {
+            urlConnection.disconnect();
+        }
     }
 
     @Override
     public void cancel() {
-
+        isCanceled = true;
     }
 
     @Override

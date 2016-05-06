@@ -1,11 +1,16 @@
 package com.lizy.myglide.load.engine;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.lizy.myglide.load.DataSource;
+import com.lizy.myglide.load.Encoder;
 import com.lizy.myglide.load.Key;
 import com.lizy.myglide.load.data.DataFetcher;
 import com.lizy.myglide.load.model.ModelLoader;
+import com.lizy.myglide.util.LogTime;
+
+import java.util.Collections;
 
 /**
  * Created by lizy on 16-5-5.
@@ -13,6 +18,8 @@ import com.lizy.myglide.load.model.ModelLoader;
 public class SourceGenerator implements DataFetcherGenerator,
         DataFetcher.DataCallback<Object>,
         DataFetcherGenerator.FetcherReadyCallback {
+
+    private final static String TAG = "SourceGenerator";
 
     private DataFetcherGenerator sourceGenerator;
 
@@ -33,7 +40,10 @@ public class SourceGenerator implements DataFetcherGenerator,
 
     @Override
     public void cancel() {
-
+        ModelLoader.LoadData<?> local = loadData;
+        if (local != null) {
+            local.fetcher.cancel();
+        }
     }
 
     @Override
@@ -69,14 +79,34 @@ public class SourceGenerator implements DataFetcherGenerator,
     }
 
     private void cacheData(Object data) {
-        //TODO:
+        long startTime = LogTime.getLogTime();
+
+        try {
+            Encoder<Object> encoder = helper.getSourceEncoder(data);
+            DataCacheWriter<Object> write = new DataCacheWriter<>(encoder, data, helper.getOptions());
+            originalKey = new DataCacheKey(loadData.sourceKey, helper.getSignature());
+            helper.getDiskCache().put(originalKey, write);
+            if (Log.isLoggable(TAG, Log.VERBOSE)) {
+                Log.v(TAG, "Finished encoding source to cache"
+                        + ", key: " + originalKey
+                        + ", data: " + dataToCache
+                        + ", encoder: " + encoder
+                        + ", duration: " + LogTime.getElapsedMillis(startTime));
+            }
+        }finally {
+            loadData.fetcher.cleanup();
+        }
+
+        sourceGenerator = new DataCacheGenerator(Collections.singletonList(loadData.sourceKey),
+                helper, this);
     }
 
     @Override
     public void onDataReady(@Nullable Object data) {
         DiskCacheStrategy diskCacheStrategy = helper.getDiskCacheStrategy();
         if (data != null && diskCacheStrategy.isDataCacheable(loadData.fetcher.getDataSource())) {
-            //TODO:
+            dataToCache = data;
+            cb.reschedule();
         } else {
             cb.onDataFetcherReady(loadData.sourceKey, data, loadData.fetcher,
                     loadData.fetcher.getDataSource(), originalKey);
@@ -85,24 +115,24 @@ public class SourceGenerator implements DataFetcherGenerator,
 
     @Override
     public void onLoadFailed(Exception e) {
-
+        cb.onDataFetcherFailed(originalKey, e, loadData.fetcher, loadData.fetcher.getDataSource());
     }
 
     @Override
     public void reschedule() {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void onDataFetcherReady(Key sourceKey, @Nullable Object data,
                                    DataFetcher<?> fetcher,
                                    DataSource dataSource, Key attemptedKey) {
-        cb.onDataFetcherReady(sourceKey, data, fetcher, dataSource, attemptedKey);
+        cb.onDataFetcherReady(sourceKey, data, fetcher, loadData.fetcher.getDataSource(), sourceKey);
     }
 
     @Override
-    public void onDataFetcherFailed(Key attemptedKey, Exception e,
+    public void onDataFetcherFailed(Key sourceKey, Exception e,
                                     DataFetcher<?> fetcher, DataSource dataSource) {
-
+        cb.onDataFetcherFailed(sourceKey, e, fetcher, loadData.fetcher.getDataSource());
     }
 }

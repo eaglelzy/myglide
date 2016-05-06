@@ -3,8 +3,10 @@ package com.lizy.myglide.load.engine;
 import com.lizy.myglide.GlideContext;
 import com.lizy.myglide.Priority;
 import com.lizy.myglide.Registry;
+import com.lizy.myglide.load.Encoder;
 import com.lizy.myglide.load.Key;
 import com.lizy.myglide.load.Options;
+import com.lizy.myglide.load.engine.cache.DiskCache;
 import com.lizy.myglide.load.model.ModelLoader;
 import com.lizy.myglide.load.model.ModelLoader.LoadData;
 import com.lizy.myglide.load.resource.UnitTransformation;
@@ -133,6 +135,10 @@ public class DecodeHelper<Transcode> {
         return cacheKeys;
     }
 
+    DiskCache getDiskCache() {
+        return diskCacheProvider.getDiskCache();
+    }
+
     List<ModelLoader<File, ?>> getModelLoaders(File file)
             throws Registry.NoModelLoaderAvailableException {
         return glideContext.getRegistry().getModelLoaders(file);
@@ -166,5 +172,17 @@ public class DecodeHelper<Transcode> {
 
     Priority getPriority() {
         return priority;
+    }
+
+    <X> Encoder<X> getSourceEncoder(X data) throws Registry.NoSourceEncodeAvailableException {
+        return glideContext.getRegistry().getSourceEncode(data);
+    }
+
+    public Options getOptions() {
+        return options;
+    }
+
+    public Key getSignature() {
+        return signature;
     }
 }

@@ -264,7 +264,11 @@ public class Engine implements EngineJobListener,
 
     @Override
     public void onEngineJobCancelled(EngineJob engineJob, Key key) {
-
+        Util.assertMainThread();
+        EngineJob current = jobs.get(key);
+        if (engineJob.equals(current)) {
+            jobs.remove(key);
+        }
     }
 
     @Override

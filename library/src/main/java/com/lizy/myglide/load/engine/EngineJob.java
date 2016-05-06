@@ -94,7 +94,11 @@ public class EngineJob<R> implements DecodeJob.Callback<R>,
 
     @Override
     public void reschedule(DecodeJob<?> job) {
-
+        if (isCanceled) {
+            MAIN_THREAD_HANDLER.obtainMessage(MSG_CANCELLED).sendToTarget();
+        } else {
+            sourceExecutor.execute(job);
+        }
     }
 
     @Override
@@ -153,7 +157,12 @@ public class EngineJob<R> implements DecodeJob.Callback<R>,
     }
 
     private void handleCancelledOnMainThread() {
-
+        stateVerifier.throwIfRecycled();
+        if (!isCanceled) {
+            throw new IllegalStateException("Not canceled");
+        }
+        engineJobListener.onEngineJobCancelled(this, key);
+        release(false);
     }
 
     private void handleExceptionOnMainThread() {

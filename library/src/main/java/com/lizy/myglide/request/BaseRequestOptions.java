@@ -24,7 +24,7 @@ public abstract class BaseRequestOptions<CHILD extends BaseRequestOptions<CHILD>
     private int fields;
 
     private float sizeMultiplier = 1f;
-    private DiskCacheStrategy diskCacheStrategy = DiskCacheStrategy.NONE;
+    private DiskCacheStrategy diskCacheStrategy = DiskCacheStrategy.ALL;
     private Priority priority = Priority.NORMAL;
     private Drawable errorPlaceholder;
     private int errorId;
