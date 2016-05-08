@@ -33,7 +33,7 @@ public class StreamEncoder implements Encoder<InputStream> {
             os = new FileOutputStream(file);
             int length;
             while ((length = data.read(buffer)) != -1) {
-                os.write(buffer);
+                os.write(buffer, 0, length);
             }
             isSuccessed = true;
         } catch (IOException e) {

@@ -185,4 +185,12 @@ public class DecodeHelper<Transcode> {
     public Key getSignature() {
         return signature;
     }
+
+    int getWidth() {
+        return width;
+    }
+
+    int getHeight() {
+        return height;
+    }
 }

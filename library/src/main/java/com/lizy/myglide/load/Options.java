@@ -10,4 +10,8 @@ public final class Options implements Key {
     public void updateDiskCacheKey(MessageDigest messageDigest) {
 
     }
+
+    public void putAll(Options options) {
+
+    }
 }

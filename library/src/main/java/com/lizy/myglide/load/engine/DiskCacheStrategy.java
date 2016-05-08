@@ -54,6 +54,29 @@ public abstract class DiskCacheStrategy {
         }
     };
 
+    public static DiskCacheStrategy DATA = new DiskCacheStrategy() {
+
+        @Override
+        public boolean isDataCacheable(DataSource dataSource) {
+            return dataSource != DataSource.DATA_DISK_CACHE && dataSource != DataSource.MEMORY_CACHE;
+        }
+
+        @Override
+        public boolean isResourceCacheable(boolean isFromAlternateCacheKey, DataSource dataSource, EncodeStrategy encodeStrategy) {
+            return false;
+        }
+
+        @Override
+        public boolean decodeCachedResource() {
+            return false;
+        }
+
+        @Override
+        public boolean decodeCachedData() {
+            return true;
+        }
+    };
+
     public abstract boolean isDataCacheable(DataSource dataSource);
 
     public abstract boolean isResourceCacheable(boolean isFromAlternateCacheKey,

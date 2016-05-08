@@ -6,6 +6,9 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.lizy.myglide.Glide;
+import com.lizy.myglide.load.engine.DiskCacheStrategy;
+import com.lizy.myglide.request.BaseRequestOptions;
+import com.lizy.myglide.request.RequestOptions;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
         imageView = (ImageView)findViewById(R.id.img_test);
 
         Glide.with(this).load(TEST_URL)
+                .apply(new RequestOptions().diskCacheStrategy(DiskCacheStrategy.DATA))
                 .into(imageView);
     }
 

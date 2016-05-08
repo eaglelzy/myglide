@@ -270,7 +270,7 @@ public class DecodeJob<R> implements Runnable,
         return 0;
     }
 
-    static class DecodeCallback<Z> implements DecodePath.DecodeCallback<Z> {
+    class DecodeCallback<Z> implements DecodePath.DecodeCallback<Z> {
 
         private final DataSource dataSource;
 
@@ -279,9 +279,25 @@ public class DecodeJob<R> implements Runnable,
         }
 
         @Override
-        public Resource<Z> onResourceDecoded(Resource<Z> resource) {
-            //TODO:
+        public Resource<Z> onResourceDecoded(Resource<Z> decoded) {
+            Class<Z> resourceSubClass = getResourceClass(decoded);
+            Transformation<Z> appliedTransformation = null;
+
+            Resource<Z> resource = decoded;
+            if (dataSource != DataSource.RESOURCE_DISK_CACHE) {
+                appliedTransformation = decodeHelper.getTransformation(resourceSubClass);
+                resource = appliedTransformation.transform(decoded, width, height);
+            }
+
+            if (!decoded.equals(resource)) {
+                decoded.recycle();
+            }
+
             return resource;
+        }
+
+        private Class<Z> getResourceClass(Resource<Z> decoded) {
+            return (Class<Z>) decoded.get().getClass();
         }
     }
 

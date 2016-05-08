@@ -32,6 +32,7 @@ public class RequestBuilder<TranscodeType> implements Cloneable {
 
     private RequestListener<TranscodeType> requestListener;
 
+    private BaseRequestOptions<?> defaultRequestOptions;
     @NonNull private BaseRequestOptions<?> requestOptions;
 
     public RequestBuilder(GlideContext glideContext,
@@ -41,7 +42,8 @@ public class RequestBuilder<TranscodeType> implements Cloneable {
         this.requestmanager = requestManager;
         this.transcodeClass = resourceTypeClass;
 
-        requestOptions = requestManager.getDefaultRequestOptions();
+        defaultRequestOptions = requestManager.getDefaultRequestOptions();
+        requestOptions = defaultRequestOptions;
     }
 
     public RequestBuilder<TranscodeType> transition(
@@ -82,6 +84,14 @@ public class RequestBuilder<TranscodeType> implements Cloneable {
         requestmanager.track(target, request);
 
         return target;
+    }
+
+    public RequestBuilder<TranscodeType> apply(@NonNull BaseRequestOptions<?> requestOptions) {
+        Preconditions.checkNotNull(requestOptions);
+        BaseRequestOptions<?> toMutate = defaultRequestOptions == this.requestOptions
+                ? this.requestOptions.clone() : this.requestOptions;
+        this.requestOptions = toMutate.apply(requestOptions);
+        return this;
     }
 
     public Target<TranscodeType> into(ImageView imageView) {
