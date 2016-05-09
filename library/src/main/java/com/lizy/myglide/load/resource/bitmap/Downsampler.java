@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.DisplayMetrics;
 
+import com.lizy.myglide.load.Option;
 import com.lizy.myglide.load.Options;
 import com.lizy.myglide.load.engine.Resource;
 import com.lizy.myglide.load.engine.bitmap_recycle.ArrayPool;
@@ -20,6 +21,10 @@ public class Downsampler {
     private final BitmapPool bitmapPool;
     private final ArrayPool byteArrayPool;
     private DisplayMetrics displayMetrics;
+
+    public static final Option<DownsampleStrategy> DOWNSAMPLE_STRATEGY =
+        Option.memory("com.lizy.myglide.load.resource.bitmap.Downsampler.DownsampleStrategy",
+            DownsampleStrategy.AT_LEAST);
 
     private static final DecodeCallbacks EMPTY_CALLBACKS = new DecodeCallbacks() {
         @Override
