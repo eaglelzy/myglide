@@ -23,5 +23,5 @@ public interface DataFetcherGenerator {
 
     void cancel();
 
-    boolean startNetxt();
+    boolean startNext();
 }

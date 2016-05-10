@@ -38,6 +38,10 @@ public class TransformationUtils {
         CIRCLE_CROP_BITMAP_PAINT.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
     }
 
+    public static Lock getBitmapDrawableLock() {
+        return BITMAP_DRAWABLE_LOCK;
+    }
+
     public static Bitmap circleCrop(BitmapPool pool,
                                     Bitmap inBitmap,
                                     int destWidth,

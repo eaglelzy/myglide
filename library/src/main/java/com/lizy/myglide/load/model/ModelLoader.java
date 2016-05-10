@@ -3,6 +3,7 @@ package com.lizy.myglide.load.model;
 import com.lizy.myglide.load.Key;
 import com.lizy.myglide.load.Options;
 import com.lizy.myglide.load.data.DataFetcher;
+import com.lizy.myglide.util.Preconditions;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,9 +22,9 @@ public interface ModelLoader<Model, Data> {
             this(sourceKey, Collections.<Key>emptyList(), fetcher);
         }
         public LoadData(Key sourceKey, List<Key> alternateKeys, DataFetcher<Data> fetcher) {
-            this.sourceKey = sourceKey;
-            this.alternateKeys = alternateKeys;
-            this.fetcher = fetcher;
+            this.sourceKey = Preconditions.checkNotNull(sourceKey);
+            this.alternateKeys = Preconditions.checkNotNull(alternateKeys);
+            this.fetcher = Preconditions.checkNotNull(fetcher);
         }
 
 

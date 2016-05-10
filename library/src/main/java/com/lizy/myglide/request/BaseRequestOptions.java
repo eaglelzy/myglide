@@ -1,14 +1,18 @@
 package com.lizy.myglide.request;
 
+import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 
 import com.lizy.myglide.Priority;
 import com.lizy.myglide.load.Key;
+import com.lizy.myglide.load.Option;
 import com.lizy.myglide.load.Options;
 import com.lizy.myglide.load.engine.DiskCacheStrategy;
 import com.lizy.myglide.load.engine.Transformation;
+import com.lizy.myglide.load.resource.bitmap.CircleCrop;
 import com.lizy.myglide.load.resource.bitmap.DownsampleStrategy;
 import com.lizy.myglide.load.resource.bitmap.Downsampler;
 import com.lizy.myglide.signature.EmptySignature;
@@ -78,6 +82,60 @@ public abstract class BaseRequestOptions<CHILD extends BaseRequestOptions<CHILD>
         return selfOrThrowIfLocked();
     }
 
+    public CHILD circleCrop(Context context) {
+        //TODO:AT_LEAST to OUT_SIDE
+        return transform(context, DownsampleStrategy.AT_LEAST, new CircleCrop(context));
+    }
+
+    public CHILD downsample(@NonNull DownsampleStrategy downsampleStrategy) {
+        return set(Downsampler.DOWNSAMPLE_STRATEGY, downsampleStrategy);
+    }
+
+
+    final CHILD transform(Context context, DownsampleStrategy downsampleStrategy,
+                    Transformation<Bitmap> transformation) {
+        if (isAutoCloneEnabled) {
+            return clone().transform(context, downsampleStrategy, transformation);
+        }
+
+        downsample(downsampleStrategy);
+        return transform(context, transformation);
+    }
+
+    public CHILD transform(Context context, @NonNull Transformation<Bitmap> transformation) {
+        if (isAutoCloneEnabled) {
+            return clone().transform(context, transformation);
+        }
+        optionalTransform(context, transformation);
+        isTransformationRequired = true;
+        fields |= TRANSFORMATION_REQUIRED;
+        return selfOrThrowIfLocked();
+    }
+
+    public CHILD optionalTransform(Context context, Transformation<Bitmap> transformation) {
+        if (isAutoCloneEnabled) {
+            return clone().optionalTransform(context, transformation);
+        }
+        optionalTransform(Bitmap.class, transformation);
+        return selfOrThrowIfLocked();
+    }
+
+
+    public final <T> CHILD optionalTransform(Class<T> resourceClass, Transformation<T> transformation) {
+        if (isAutoCloneEnabled) {
+            return clone().optionalTransform(resourceClass, transformation);
+        }
+
+        Preconditions.checkNotNull(resourceClass);
+        Preconditions.checkNotNull(transformation);
+
+        transformations.put(resourceClass, transformation);
+        fields |= TRANSFORMATION;
+        isTransformationAllowed = true;
+        fields |= TRANSFORMATION_ALLOWED;
+        return selfOrThrowIfLocked();
+    }
+
     @Override
     public CHILD clone() {
         BaseRequestOptions<CHILD> result = null;
@@ -100,6 +158,15 @@ public abstract class BaseRequestOptions<CHILD extends BaseRequestOptions<CHILD>
         return (CHILD)this;
     }
 
+    public CHILD autoLock() {
+        if (isLocked && !isAutoCloneEnabled) {
+            throw new IllegalStateException("You cannot auto lock an already locked options object"
+                    + ", try clone() first");
+        }
+        isAutoCloneEnabled = true;
+        return lock();
+    }
+
     private CHILD selfOrThrowIfLocked() {
         if (isLocked) {
             throw new IllegalStateException("You cannot modify locked RequestOptions, consider clone()");
@@ -109,6 +176,17 @@ public abstract class BaseRequestOptions<CHILD extends BaseRequestOptions<CHILD>
 
     public final Map<Class<?>, Transformation<?>> getTransformations() {
         return transformations;
+    }
+
+    public final <T> CHILD set(@NonNull Option<T> option, @NonNull T value) {
+        if (isAutoCloneEnabled) {
+            return clone().set(option, value);
+        }
+
+        Preconditions.checkNotNull(option);
+        Preconditions.checkNotNull(value);
+        options.set(option, value);
+        return selfOrThrowIfLocked();
     }
 
     public final boolean isTransformationRequired() {
@@ -202,6 +280,18 @@ public abstract class BaseRequestOptions<CHILD extends BaseRequestOptions<CHILD>
 
         if (isSet(other.fields, DISK_CACHE_STRATEGY)) {
             diskCacheStrategy = other.diskCacheStrategy;
+        }
+
+        if (isSet(other.fields, TRANSFORMATION_ALLOWED)) {
+            isTransformationAllowed = other.isTransformationAllowed;
+        }
+
+        if (isSet(other.fields, TRANSFORMATION_REQUIRED)) {
+            isTransformationRequired = other.isTransformationRequired;
+        }
+
+        if (isSet(other.fields, TRANSFORMATION)) {
+            transformations.putAll(other.transformations);
         }
 
         fields |= other.fields;

@@ -47,14 +47,14 @@ public class SourceGenerator implements DataFetcherGenerator,
     }
 
     @Override
-    public boolean startNetxt() {
+    public boolean startNext() {
         if (dataToCache != null) {
             Object data = dataToCache;
             dataToCache = null;
             cacheData(data);
         }
 
-        if (sourceGenerator != null && sourceGenerator.startNetxt()) {
+        if (sourceGenerator != null && sourceGenerator.startNext()) {
             return true;
         }
 

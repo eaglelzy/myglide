@@ -59,8 +59,4 @@ public final class Options implements Key {
     private <T> void updateDiskCacheKey(Option<T> option, Object value, MessageDigest messageDigest) {
         option.update((T)value, messageDigest);
     }
-
-    public void putAll(Options options) {
-
-    }
 }

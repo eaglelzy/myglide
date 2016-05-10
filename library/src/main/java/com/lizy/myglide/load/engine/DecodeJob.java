@@ -6,9 +6,12 @@ import android.util.Log;
 
 import com.lizy.myglide.GlideContext;
 import com.lizy.myglide.Priority;
+import com.lizy.myglide.Registry;
 import com.lizy.myglide.load.DataSource;
+import com.lizy.myglide.load.EncodeStrategy;
 import com.lizy.myglide.load.Key;
 import com.lizy.myglide.load.Options;
+import com.lizy.myglide.load.ResourceEncoder;
 import com.lizy.myglide.load.data.DataFetcher;
 import com.lizy.myglide.load.engine.cache.DiskCache;
 import com.lizy.myglide.util.LogTime;
@@ -58,6 +61,8 @@ public class DecodeJob<R> implements Runnable,
 
     private volatile boolean isCallbackNotified;
     private volatile boolean isCancelled;
+
+    private DefferedEncodeManager<?> defferedEncodeManager = new DefferedEncodeManager<>();
 
     DecodeJob(DiskCacheProvider diskCacheProvider, Pools.Pool<DecodeJob<?>> pool) {
         this.diskCacheProvider = diskCacheProvider;
@@ -155,6 +160,7 @@ public class DecodeJob<R> implements Runnable,
             logWithTimeAndKey("Retrieved data", startFetchTime,
                     "data: " + currentData
                             + ", cache key: " + currentSourceKey
+                            + ", datasource: " + currentDataSource
                             + ", fetcher: " + currentFetcher);
         }
 
@@ -162,22 +168,37 @@ public class DecodeJob<R> implements Runnable,
         try {
             resource = decodeFromData(currentFetcher, currentData, currentDataSource);
         } catch (GlideException e) {
-            e.printStackTrace();
+            e.setLoggingDetails(currentAttemptingKey, currentDataSource);
             exceptions.add(e);
         }
 
         if (resource != null) {
             notifyEncodeAndRelease(resource, currentDataSource);
         } else {
-            runGenerators();
+            //TODO:why call this
+//            runGenerators();
         }
     }
 
-    private void notifyEncodeAndRelease(Resource<R> resource, DataSource currentDataSource) {
-        //TODO:
-        notifyComplete(resource, currentDataSource);
+    private void notifyEncodeAndRelease(Resource<R> resource, DataSource dataSource) {
+        Resource<R> result = resource;
+        LockedResource<R> lockedResource = null;
+        if (defferedEncodeManager.hasResourceEncoder()) {
+            lockedResource = LockedResource.obtain(resource);
+            result = lockedResource;
+        }
+        notifyComplete(result, dataSource);
 
         stage = Stage.ENCODE;
+        try {
+            if (defferedEncodeManager.hasResourceEncoder()) {
+                defferedEncodeManager.encode(diskCacheProvider, options);
+            }
+        } finally {
+            if (lockedResource != null) {
+                lockedResource.unlock();
+            }
+        }
         onEncodeComplete();
     }
 
@@ -283,21 +304,84 @@ public class DecodeJob<R> implements Runnable,
             Class<Z> resourceSubClass = getResourceClass(decoded);
             Transformation<Z> appliedTransformation = null;
 
-            Resource<Z> resource = decoded;
+            Resource<Z> transformed = decoded;
             if (dataSource != DataSource.RESOURCE_DISK_CACHE) {
                 appliedTransformation = decodeHelper.getTransformation(resourceSubClass);
-                resource = appliedTransformation.transform(decoded, width, height);
+                transformed = appliedTransformation.transform(decoded, width, height);
             }
 
-            if (!decoded.equals(resource)) {
+            if (!decoded.equals(transformed)) {
                 decoded.recycle();
             }
 
-            return resource;
+            final EncodeStrategy encodeStrategy;
+            final ResourceEncoder<Z> encoder;
+            if (decodeHelper.isResourceEncoderAvailable(transformed)) {
+                encoder = decodeHelper.getResultEncoder(transformed);
+                encodeStrategy = encoder.getEncodeStrategy(options);
+            } else {
+                encoder = null;
+                encodeStrategy = EncodeStrategy.NONE;
+            }
+
+            Resource<Z> result = transformed;
+            boolean isFromAlternateCacheKey = !decodeHelper.isSourceKey(currentSourceKey);
+            if (diskCacheStrategy.isResourceCacheable(isFromAlternateCacheKey, dataSource, encodeStrategy)) {
+                if (encoder == null) {
+                    throw new Registry.NoResultEncoderAvailableException(transformed.getResourceClass());
+                }
+
+                final Key key;
+                if (encodeStrategy == EncodeStrategy.SOURCE) {
+                    key = new DataCacheKey(currentSourceKey, signature);
+                } else if (encodeStrategy == EncodeStrategy.TRANSFORMED) {
+                    key = new ResourceCacheKey(currentSourceKey, signature, width, height,
+                            appliedTransformation, resourceSubClass, options);
+                } else {
+                    throw new IllegalArgumentException("Unkown EncodeStrategy:" + encodeStrategy);
+                }
+                LockedResource<Z> lockedResource = LockedResource.obtain(transformed);
+                defferedEncodeManager.init(key, encoder, lockedResource);
+                result = lockedResource;
+            }
+
+            return result;
         }
 
         private Class<Z> getResourceClass(Resource<Z> decoded) {
             return (Class<Z>) decoded.get().getClass();
+        }
+    }
+
+    private static class DefferedEncodeManager<Z> {
+
+        private Key key;
+        private ResourceEncoder<Z> resourceEncoder;
+        private LockedResource<Z> lockedResource;
+
+        <X> void init(Key key, ResourceEncoder<X> resourceEncoder, LockedResource<X> lockedResource) {
+            this.key = key;
+            this.resourceEncoder = (ResourceEncoder<Z>) resourceEncoder;
+            this.lockedResource = (LockedResource<Z>) lockedResource;
+        }
+
+        void encode(DiskCacheProvider diskCacheProvider, Options options) {
+            try {
+                diskCacheProvider.getDiskCache().put(key,
+                        new DataCacheWriter<>(resourceEncoder, lockedResource, options));
+            } finally {
+                lockedResource.unlock();
+            }
+        }
+
+        boolean hasResourceEncoder() {
+            return resourceEncoder != null;
+        }
+
+        void clear() {
+            key = null;
+            resourceEncoder = null;
+            lockedResource = null;
         }
     }
 
@@ -306,7 +390,7 @@ public class DecodeJob<R> implements Runnable,
         startFetchTime = LogTime.getLogTime();
         boolean isStarted = false;
         while (!isStarted && currentGenerator != null
-                && !(isStarted = currentGenerator.startNetxt())) {
+                && !(isStarted = currentGenerator.startNext())) {
             stage = getNextStage(stage);
             currentGenerator = getNextGenerator();
 
@@ -336,7 +420,7 @@ public class DecodeJob<R> implements Runnable,
     private DataFetcherGenerator getNextGenerator() {
         switch (stage) {
             case RESOURCE_CACHE:
-                return new ResourceCacheGenerator();
+                return new ResourceCacheGenerator(decodeHelper, this);
             case DATA_CACHE:
                 return new DataCacheGenerator(decodeHelper, this);
             case SOURCE:

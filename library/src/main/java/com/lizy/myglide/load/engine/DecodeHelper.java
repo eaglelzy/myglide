@@ -1,11 +1,14 @@
 package com.lizy.myglide.load.engine;
 
+import android.util.Log;
+
 import com.lizy.myglide.GlideContext;
 import com.lizy.myglide.Priority;
 import com.lizy.myglide.Registry;
 import com.lizy.myglide.load.Encoder;
 import com.lizy.myglide.load.Key;
 import com.lizy.myglide.load.Options;
+import com.lizy.myglide.load.ResourceEncoder;
 import com.lizy.myglide.load.engine.cache.DiskCache;
 import com.lizy.myglide.load.model.ModelLoader;
 import com.lizy.myglide.load.model.ModelLoader.LoadData;
@@ -108,6 +111,19 @@ public class DecodeHelper<Transcode> {
         return result;
     }
 
+    List<Class<?>> getRegisteredResourceClasses() {
+        return glideContext.getRegistry()
+                .getRegisteredResourceClasses(model.getClass(), resourceClass, transcodeClass);
+    }
+
+    boolean isResourceEncoderAvailable(Resource<?> resource) {
+        return glideContext.getRegistry().isResourceEncoderAvailable(resource);
+    }
+
+    <Z> ResourceEncoder<Z> getResultEncoder(Resource<Z> resource) {
+        return glideContext.getRegistry().getResultEncoder(resource);
+    }
+
     boolean isSourceKey(Key key) {
         List<LoadData<?>> loadData = getLoadData();
         int size = loadData.size();
@@ -128,6 +144,8 @@ public class DecodeHelper<Transcode> {
             int size = loadData.size();
             for (int i = 0; i < size; i++) {
                 LoadData<?> data = loadData.get(i);
+                Log.d("lizy", "sourceKey=" + data.sourceKey);
+                Log.d("lizy", "alternateKeys=" + data.alternateKeys);
                 cacheKeys.add(data.sourceKey);
                 cacheKeys.addAll(data.alternateKeys);
             }

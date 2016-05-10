@@ -5,19 +5,24 @@ import android.support.v4.util.Pools;
 
 import com.lizy.myglide.load.Encoder;
 import com.lizy.myglide.load.ResourceDecoder;
+import com.lizy.myglide.load.ResourceEncoder;
 import com.lizy.myglide.load.engine.DecodePath;
 import com.lizy.myglide.load.engine.LoadPath;
+import com.lizy.myglide.load.engine.Resource;
 import com.lizy.myglide.load.model.ModelLoader;
 import com.lizy.myglide.load.model.ModelLoaderFactory;
 import com.lizy.myglide.load.model.ModelLoaderRegistry;
 import com.lizy.myglide.load.provider.LoadPathCache;
+import com.lizy.myglide.load.provider.ModelToResourceClassCache;
 import com.lizy.myglide.load.provider.ResourceDecodeRegistry;
+import com.lizy.myglide.load.provider.ResourceEncoderRegistry;
 import com.lizy.myglide.load.resource.transcode.ResourceTranscoder;
 import com.lizy.myglide.load.resource.transcode.TranscodeRegistry;
 import com.lizy.myglide.provider.EncoderRegistry;
 import com.lizy.myglide.util.pool.FactoryPools;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,8 +35,12 @@ public class Registry {
     private final ResourceDecodeRegistry decoderRegistry;
     private final TranscodeRegistry transcoderRegistry;
     private final EncoderRegistry encoderRegistry;
+    private final ResourceEncoderRegistry resourceEncoderRegistry;
 
 //    private final LoadPathCache loadPathCache = new LoadPathCache();
+
+    private final ModelToResourceClassCache modelToResourceClassCache =
+            new ModelToResourceClassCache();
 
     private final Pools.Pool<List<Exception>> exceptionListPool = FactoryPools.threadSafeList();
     private LoadPathCache loadPathCache = new LoadPathCache();
@@ -42,11 +51,30 @@ public class Registry {
         decoderRegistry = new ResourceDecodeRegistry();
         transcoderRegistry = new TranscodeRegistry();
         encoderRegistry = new EncoderRegistry();
+        resourceEncoderRegistry = new ResourceEncoderRegistry();
     }
 
     public <Data> Registry register(Class<Data> dataClass, Encoder<Data> encoder) {
         encoderRegistry.add(dataClass, encoder);
         return this;
+    }
+
+    public <TResource> Registry register(Class<TResource> resourceClass,
+                                         ResourceEncoder<TResource> encoder) {
+        resourceEncoderRegistry.add(resourceClass, encoder);
+        return this;
+    }
+
+    public boolean isResourceEncoderAvailable(Resource<?> resource) {
+        return resourceEncoderRegistry.get(resource.getResourceClass()) != null;
+    }
+
+    public <X> ResourceEncoder<X> getResultEncoder(Resource<X> resource) {
+        ResourceEncoder<X> result = resourceEncoderRegistry.get(resource.getResourceClass());
+        if (result != null) {
+            return result;
+        }
+        throw new NoResultEncoderAvailableException(resource.getResourceClass());
     }
 
     public <X> Encoder<X> getSourceEncode(X data) throws NoSourceEncodeAvailableException {
@@ -145,6 +173,32 @@ public class Registry {
         return decodePaths;
     }
 
+    public <Model, TResource, Transcode> List<Class<?>> getRegisteredResourceClasses(
+            Class<Model> modelClass, Class<TResource> resourceClass, Class<Transcode> transcodeClass) {
+        List<Class<?>> result = modelToResourceClassCache.get(modelClass, resourceClass);
+
+        if (result == null) {
+            result = new ArrayList<>();
+            List<Class<?>> dataClasses = modelLoaderRegistry.getDataClasses(modelClass);
+            for (Class<?> dataClass : dataClasses) {
+                List<? extends Class<?>> registeredResourceClasses =
+                        decoderRegistry.getResourceClasses(dataClass, resourceClass);
+                for (Class<?> registeredResourceClass : registeredResourceClasses) {
+                    List<Class<Transcode>> registeredTranscodeClasses = transcoderRegistry
+                            .getTranscodeClasses(registeredResourceClass, transcodeClass);
+                    if (!registeredTranscodeClasses.isEmpty() && !result.contains(registeredResourceClass)) {
+                        result.add(registeredResourceClass);
+                    }
+                }
+            }
+            modelToResourceClassCache.put(modelClass, resourceClass,
+                    Collections.unmodifiableList(result));
+        }
+
+        return result;
+    }
+
+
     /**
      * Thrown when no {@link com.lizy.myglide.load.model.ModelLoader} is registered for a given
      * model class.
@@ -173,4 +227,11 @@ public class Registry {
             super(message);
         }
     }
+
+    public static class NoResultEncoderAvailableException extends MissingComponentException {
+        public NoResultEncoderAvailableException(Class<?> resourceClass) {
+            super("Failed to find result encoder for resource class: " + resourceClass);
+        }
+    }
+
 }

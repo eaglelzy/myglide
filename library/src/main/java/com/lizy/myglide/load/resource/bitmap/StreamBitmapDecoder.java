@@ -6,6 +6,7 @@ import com.lizy.myglide.load.Options;
 import com.lizy.myglide.load.ResourceDecoder;
 import com.lizy.myglide.load.engine.Resource;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,7 +28,10 @@ public class StreamBitmapDecoder implements ResourceDecoder<InputStream, Bitmap>
 
     // TODO:wrapInputStream
     @Override
-    public Resource<Bitmap> decode(InputStream source, int width, int height, Options options) throws IOException {
-        return downsampler.decode(source, width, height, options);
+    public Resource<Bitmap> decode(InputStream inputStream, int width, int height, Options options) throws IOException {
+        if (!(inputStream instanceof BufferedInputStream)) {
+            inputStream = new BufferedInputStream(inputStream);
+        }
+        return downsampler.decode(inputStream, width, height, options);
     }
 }

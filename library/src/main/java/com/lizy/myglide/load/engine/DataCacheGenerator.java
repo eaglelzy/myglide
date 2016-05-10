@@ -45,7 +45,7 @@ public class DataCacheGenerator implements DataFetcherGenerator,
     }
 
     @Override
-    public boolean startNetxt() {
+    public boolean startNext() {
         while (modelLoaders == null || !hasNextLoaders()) {
             souceIdIndex++;
             if (souceIdIndex >= keys.size()) {

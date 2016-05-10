@@ -25,6 +25,7 @@ import com.lizy.myglide.load.model.StringLoader;
 import com.lizy.myglide.load.model.stream.HttpGlideUrlLoader;
 import com.lizy.myglide.load.model.stream.HttpUriLoader;
 import com.lizy.myglide.load.resource.bitmap.BitmapDrawableDecoder;
+import com.lizy.myglide.load.resource.bitmap.BitmapEncode;
 import com.lizy.myglide.load.resource.bitmap.Downsampler;
 import com.lizy.myglide.load.resource.bitmap.StreamBitmapDecoder;
 import com.lizy.myglide.load.resource.transcode.BitmapDrawableTanscoder;
@@ -99,19 +100,26 @@ public class Glide implements ComponentCallbacks2 {
 
         registry = new Registry(context);
 
+        // ResourceEncoder
+        registry.register(Bitmap.class, new BitmapEncode());
+
+        // Encoder
         registry.register(InputStream.class, new StreamEncoder(arrayPool));
 
+        // ModelLoaders
         registry.append(String.class, InputStream.class, new StringLoader.StreamFactory());
         registry.append(Uri.class, InputStream.class, new HttpUriLoader.Factory());
         registry.append(GlideUrl.class, InputStream.class, new HttpGlideUrlLoader.Factory());
 
         registry.append(File.class, InputStream.class, new FileLoader.StreamFactory());
 
+        // ResourceDecoder
         registry.append(InputStream.class, Bitmap.class, new StreamBitmapDecoder(downsampler));
         registry.append(InputStream.class, BitmapDrawable.class,
                 new BitmapDrawableDecoder<>(resources, bitmapPool,
                         new StreamBitmapDecoder(downsampler)));
 
+        // transcode
         registry.register(Bitmap.class, BitmapDrawable.class,
                 new BitmapDrawableTanscoder(resources, bitmapPool));
 
