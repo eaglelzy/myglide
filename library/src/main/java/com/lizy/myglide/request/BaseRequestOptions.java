@@ -84,7 +84,7 @@ public abstract class BaseRequestOptions<CHILD extends BaseRequestOptions<CHILD>
 
     public CHILD circleCrop(Context context) {
         //TODO:AT_LEAST to OUT_SIDE
-        return transform(context, DownsampleStrategy.AT_LEAST, new CircleCrop(context));
+        return transform(context, DownsampleStrategy.CENTER_OUTSIDE, new CircleCrop(context));
     }
 
     public CHILD downsample(@NonNull DownsampleStrategy downsampleStrategy) {
@@ -134,6 +134,18 @@ public abstract class BaseRequestOptions<CHILD extends BaseRequestOptions<CHILD>
         isTransformationAllowed = true;
         fields |= TRANSFORMATION_ALLOWED;
         return selfOrThrowIfLocked();
+    }
+
+    public final boolean isTransformationAllowed() {
+        return isTransformationAllowed;
+    }
+
+    public final boolean isTransformationSet() {
+        return isSet(TRANSFORMATION);
+    }
+
+    public boolean isLocked() {
+        return isLocked;
     }
 
     @Override

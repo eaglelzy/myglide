@@ -94,11 +94,34 @@ public class RequestBuilder<TranscodeType> implements Cloneable {
         return this;
     }
 
-    public Target<TranscodeType> into(ImageView imageView) {
+    public Target<TranscodeType> into(ImageView view) {
         Util.assertMainThread();
-        Preconditions.checkNotNull(imageView);
+        Preconditions.checkNotNull(view);
+        if (!requestOptions.isTransformationSet()
+                && requestOptions.isTransformationAllowed()
+                && view.getScaleType() != null) {
+            if (requestOptions.isLocked()) {
+                requestOptions = requestOptions.clone();
+            }
+            switch (view.getScaleType()) {
+                case CENTER_CROP:
+//TODO:                    requestOptions.optionalCenterCrop(context);
+                    break;
+                case CENTER_INSIDE:
+//TODO:                    requestOptions.optionalCenterInside(context);
+                    break;
+                case FIT_CENTER:
+                case FIT_START:
+                case FIT_END:
+//TODO:                    requestOptions.optionalFitCenter(context);
+                    break;
+                //$CASES-OMITTED$
+                default:
+                    // Do nothing.
+            }
+        }
 
-        return into(context.buildImageViewTarget(imageView, transcodeClass));
+        return into(context.buildImageViewTarget(view, transcodeClass));
     }
 
     private Request buildRequest(Target<TranscodeType> target) {

@@ -2,10 +2,12 @@ package com.lizy.myglide.load.resource.bitmap;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.media.ExifInterface;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
@@ -100,6 +102,109 @@ public class TransformationUtils {
         Bitmap argbBitmap = pool.get(inBitmap.getWidth(), inBitmap.getHeight(), Bitmap.Config.ARGB_8888);
         new Canvas(argbBitmap).drawBitmap(inBitmap, 0, 0, null);
         return argbBitmap;
+    }
+
+    public static int getExitOrientaionDegrees(int exifOrientation) {
+        final int degreesToRotate;
+        switch (exifOrientation) {
+            case ExifInterface.ORIENTATION_TRANSPOSE:
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                degreesToRotate = 90;
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+            case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                degreesToRotate = 180;
+                break;
+            case ExifInterface.ORIENTATION_TRANSVERSE:
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                degreesToRotate = 270;
+                break;
+            default:
+                degreesToRotate = 0;
+                break;
+        }
+        return degreesToRotate;
+    }
+
+    /**
+     * Rotate and/or flip the image to match the given exif orientation.
+     *
+     * @param pool            A pool that may or may not contain an image of the necessary
+     *                        dimensions.
+     * @param inBitmap        The bitmap to rotate/flip.
+     * @param exifOrientation the exif orientation [1-8].
+     * @return The rotated and/or flipped image or toOrient if no rotation or flip was necessary.
+     */
+    public static Bitmap rotateImageExif(@NonNull BitmapPool pool, @NonNull Bitmap inBitmap,
+                                         int exifOrientation) {
+        final Matrix matrix = new Matrix();
+        initializeMatrixForRotation(exifOrientation, matrix);
+        if (matrix.isIdentity()) {
+            return inBitmap;
+        }
+
+        // From Bitmap.createBitmap.
+        final RectF newRect = new RectF(0, 0, inBitmap.getWidth(), inBitmap.getHeight());
+        matrix.mapRect(newRect);
+
+        final int newWidth = Math.round(newRect.width());
+        final int newHeight = Math.round(newRect.height());
+
+        Bitmap.Config config = getSafeConfig(inBitmap);
+        Bitmap result = pool.get(newWidth, newHeight, config);
+
+        matrix.postTranslate(-newRect.left, -newRect.top);
+
+        applyMatrix(inBitmap, result, matrix);
+        return result;
+    }
+
+    private static Bitmap.Config getSafeConfig(Bitmap bitmap) {
+        return bitmap.getConfig() != null ? bitmap.getConfig() : Bitmap.Config.ARGB_8888;
+    }
+
+    private static void applyMatrix(@NonNull Bitmap inBitmap, @NonNull Bitmap targetBitmap,
+                                    Matrix matrix) {
+        BITMAP_DRAWABLE_LOCK.lock();
+        try {
+            Canvas canvas = new Canvas(targetBitmap);
+            canvas.drawBitmap(inBitmap, matrix, DEFAULT_PAINT);
+            clear(canvas);
+        } finally {
+            BITMAP_DRAWABLE_LOCK.unlock();
+        }
+    }
+
+    // Visible for testing.
+    static void initializeMatrixForRotation(int exifOrientation, Matrix matrix) {
+        switch (exifOrientation) {
+            case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                matrix.setScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                matrix.setRotate(180);
+                break;
+            case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                matrix.setRotate(180);
+                matrix.postScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_TRANSPOSE:
+                matrix.setRotate(90);
+                matrix.postScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                matrix.setRotate(90);
+                break;
+            case ExifInterface.ORIENTATION_TRANSVERSE:
+                matrix.setRotate(-90);
+                matrix.postScale(-1, 1);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                matrix.setRotate(-90);
+                break;
+            default:
+                // Do nothing.
+        }
     }
 
     private static final class NoLock implements Lock {
